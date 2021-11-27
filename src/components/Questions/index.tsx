@@ -133,17 +133,17 @@ export const Questions: React.FC = () => {
               You scored {score} out of {questions.length}
             </Score>
             {Object.values(questions).map((question, index) => (
-              <>
+              <div key={question.id}>
                 <h3>{index + 1 + ". " + question.question}</h3>
                 <Answers>
                   {Object.values(question.answers).map((answer, index) =>
                     Object.values(question.correct_answers)[index] ===
                     "true" ? (
-                      <Answer className="green">
+                      <Answer className="green" key={index}>
                         {answer !== null && "-> " + answer}
                       </Answer>
                     ) : (
-                      <Answer className="red">
+                      <Answer className="red" key={index}>
                         {answer !== null && "-> " + answer}
                       </Answer>
                     )
@@ -153,7 +153,7 @@ export const Questions: React.FC = () => {
                     {<h4>{userAnswers[index]}</h4>}
                   </div>
                 </Answers>
-              </>
+              </div>
             ))}
 
             <Button type="reset" onClick={handleResetQuiz}>
@@ -175,6 +175,7 @@ export const Questions: React.FC = () => {
                 (answerOption, index) =>
                   answerOption !== null && (
                     <Button
+                      key={index}
                       onClick={() =>
                         handleAnswerOptionClick(
                           Object.values(questions)[currentQuestion],
