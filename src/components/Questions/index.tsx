@@ -1,55 +1,87 @@
 import React, { useState } from "react";
+import Loader from "react-loader-spinner";
+import { AxiosRequestConfig } from "axios";
 
-import { Container } from "./styles";
+import api from "../../services/api";
+import { initialInfosSchema } from "../../validations/initalInfosValidation";
+import { Question } from "../../models/question";
+import { environments } from "../../environments/environments";
+
+import {
+  Container,
+  Content,
+  Score,
+  QuestionContainer,
+  AnswerContainer,
+  Answers,
+  Answer,
+  Button,
+  FormContent,
+  Input,
+  Select,
+} from "./styles";
 
 export const Questions: React.FC = () => {
-  const questions = [
-    {
-      questionText: "What is the capital of France?",
-      answerOptions: [
-        { answerText: "New York", isCorrect: false },
-        { answerText: "London", isCorrect: false },
-        { answerText: "Paris", isCorrect: true },
-        { answerText: "Dublin", isCorrect: false },
-      ],
-    },
-    {
-      questionText: "Who is CEO of Tesla?",
-      answerOptions: [
-        { answerText: "Jeff Bezos", isCorrect: false },
-        { answerText: "Elon Musk", isCorrect: true },
-        { answerText: "Bill Gates", isCorrect: false },
-        { answerText: "Tony Stark", isCorrect: false },
-      ],
-    },
-    {
-      questionText: "The iPhone was created by which company?",
-      answerOptions: [
-        { answerText: "Apple", isCorrect: true },
-        { answerText: "Intel", isCorrect: false },
-        { answerText: "Amazon", isCorrect: false },
-        { answerText: "Microsoft", isCorrect: false },
-      ],
-    },
-    {
-      questionText: "How many Harry Potter books are there?",
-      answerOptions: [
-        { answerText: "1", isCorrect: false },
-        { answerText: "4", isCorrect: false },
-        { answerText: "6", isCorrect: false },
-        { answerText: "7", isCorrect: true },
-      ],
-    },
-  ];
-
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [showScore, setShowScore] = useState(false);
   const [score, setScore] = useState(0);
 
-  const handleAnswerOptionClick = (isCorrect: boolean) => {
-    if (isCorrect) {
-      setScore(score + 1);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [userAnswers, setUserAnswers] = useState<string[]>([]);
+
+  const [showScore, setShowScore] = useState(false);
+  const [loadingQuestions, setLoadingQuestions] = useState(false);
+  const [name, setName] = useState("");
+
+  const handleStartQuiz = async (event: React.SyntheticEvent) => {
+    event.preventDefault();
+
+    const target = event.target as typeof event.target & {
+      name: { value: string };
+      difficulty: { value: string };
+    };
+
+    const name = target.name.value;
+    const difficulty = target.difficulty.value;
+
+    const isValid = await initialInfosSchema.isValid({ name, difficulty });
+
+    if (!isValid)
+      window.alert("Preencha todas informações antes de prosseguir.");
+    else {
+      setName(name);
+      setLoadingQuestions(true);
+
+      const requestParams: AxiosRequestConfig = {
+        params: {
+          apiKey: environments.apiKey,
+          limit: 10,
+          difficulty,
+        },
+      };
+
+      api
+        .get("", requestParams)
+        .then(({ data }) => {
+          if (questions.length === 0) {
+            setLoadingQuestions(false);
+            setQuestions(data);
+          }
+        })
+        .catch((err) => console.log(err));
     }
+  };
+
+  const handleAnswerOptionClick = (
+    question: Question,
+    userAnswer: number,
+    answers: any
+  ) => {
+    if (Object.values(answers)[userAnswer] === "true") setScore(score + 1);
+
+    setUserAnswers([
+      ...userAnswers,
+      Object.values(question.answers)[userAnswer],
+    ]);
 
     const nextQuestion = currentQuestion + 1;
     if (nextQuestion < questions.length) {
@@ -58,33 +90,109 @@ export const Questions: React.FC = () => {
       setShowScore(true);
     }
   };
+
+  const handleResetQuiz = () => {
+    setQuestions([]);
+    setShowScore(false);
+    setScore(0);
+    setCurrentQuestion(0);
+  };
+
   return (
-    <div className="app">
-      {showScore ? (
-        <div className="score-section">
-          You scored {score} out of {questions.length}
-        </div>
-      ) : (
-        <>
-          <div className="question-section">
-            <div className="question-count">
-              <span>Question {currentQuestion + 1}</span>/{questions.length}
-            </div>
-            <div className="question-text">
-              {questions[currentQuestion].questionText}
-            </div>
-          </div>
-          <div className="answer-section">
-            {questions[currentQuestion].answerOptions.map((answerOption) => (
-              <button
-                onClick={() => handleAnswerOptionClick(answerOption.isCorrect)}
-              >
-                {answerOption.answerText}
-              </button>
+    <Container>
+      <Content>
+        {questions.length === 0 ? (
+          <FormContent onSubmit={handleStartQuiz}>
+            <label>
+              What is your name?
+              <Input type="text" name="name" defaultValue={name ? name : ""} />
+            </label>
+
+            <label>
+              <span>Choice one difficulty: </span>
+              <Select name="difficulty">
+                <option value="easy">Easy</option>
+                <option value="hard">Hard</option>
+              </Select>
+            </label>
+
+            <Button type="submit" className="start-button">
+              {loadingQuestions ? (
+                <Loader type="Puff" color="#00BFFF" height={35} width={35} />
+              ) : (
+                "Start!"
+              )}
+            </Button>
+          </FormContent>
+        ) : (
+          <h1>Good luck {name}</h1>
+        )}
+        {showScore ? (
+          <>
+            <Score>
+              You scored {score} out of {questions.length}
+            </Score>
+            {Object.values(questions).map((question, index) => (
+              <>
+                <h3>{index + 1 + ". " + question.question}</h3>
+                <Answers>
+                  {Object.values(question.answers).map((answer, index) =>
+                    Object.values(question.correct_answers)[index] ===
+                    "true" ? (
+                      <Answer className="green">
+                        {answer !== null && "-> " + answer}
+                      </Answer>
+                    ) : (
+                      <Answer className="red">
+                        {answer !== null && "-> " + answer}
+                      </Answer>
+                    )
+                  )}
+                  <div>
+                    Your answer:&nbsp;
+                    {<h4>{userAnswers[index]}</h4>}
+                  </div>
+                </Answers>
+              </>
             ))}
-          </div>
-        </>
-      )}
-    </div>
+
+            <Button type="reset" onClick={handleResetQuiz}>
+              Start Again
+            </Button>
+          </>
+        ) : questions.length > 0 ? (
+          <>
+            <QuestionContainer>
+              <div className="question-count">
+                <span>Question {currentQuestion + 1}</span>/{questions.length}
+              </div>
+              <div className="question-text">
+                {Object.values(questions)[currentQuestion].question}
+              </div>
+            </QuestionContainer>
+            <AnswerContainer>
+              {Object.values(questions[currentQuestion].answers).map(
+                (answerOption, index) =>
+                  answerOption !== null && (
+                    <Button
+                      onClick={() =>
+                        handleAnswerOptionClick(
+                          Object.values(questions)[currentQuestion],
+                          index,
+                          questions[currentQuestion].correct_answers
+                        )
+                      }
+                    >
+                      {answerOption}
+                    </Button>
+                  )
+              )}
+            </AnswerContainer>
+          </>
+        ) : (
+          <h4>Persistence is the path to success</h4>
+        )}
+      </Content>
+    </Container>
   );
 };
