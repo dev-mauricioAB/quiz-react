@@ -190,7 +190,9 @@ export const Questions: React.FC = () => {
             </AnswerContainer>
           </>
         ) : (
-          <h4>Persistence is the path to success</h4>
+          <h4>
+            <i>Persistence is the path to success...</i>
+          </h4>
         )}
       </Content>
     </Container>
