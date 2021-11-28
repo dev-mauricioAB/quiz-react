@@ -125,7 +125,7 @@ export const Questions: React.FC = () => {
             </Button>
           </FormContent>
         ) : (
-          <h1>Good luck {name}</h1>
+          <h1>{showScore ? "Congratulatons " + name : "Good luck " + name}</h1>
         )}
         {showScore ? (
           <>
