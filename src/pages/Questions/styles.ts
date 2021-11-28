@@ -8,12 +8,13 @@ export const Container = styled.div`
 
 export const Content = styled.div`
   width: 29rem;
-  min-height: 13rem;
-
-  background-color: #252d4a;
   height: min-content;
-  border-radius: 0.6rem;
   padding: 1.25rem;
+  min-height: 13rem;
+  border-radius: 0.6rem;
+  margin: 0.8rem;
+
+  background-color: var(--background-container);
   box-shadow: 10px 10px 42px 0px rgba(0, 0, 0, 0.75);
   color: #ffffff;
 
