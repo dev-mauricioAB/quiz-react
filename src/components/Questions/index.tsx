@@ -74,7 +74,7 @@ export const Questions: React.FC = () => {
   const handleAnswerOptionClick = (
     question: Question,
     userAnswer: number,
-    answers: any
+    answers: { [key: string]: string }
   ) => {
     if (Object.values(answers)[userAnswer] === "true") setScore(score + 1);
 
