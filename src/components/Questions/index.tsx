@@ -64,7 +64,21 @@ export const Questions: React.FC = () => {
         .then(({ data }) => {
           if (questions.length === 0) {
             setLoadingQuestions(false);
-            setQuestions(data);
+
+            let questions: Question[] = [];
+
+            const filteredQuestions = data.filter(
+              (questions: Question) =>
+                Object.values(questions.answers).filter(
+                  (answer) => answer !== null
+                ).length > 3
+            );
+
+            filteredQuestions.forEach((question: Question) => {
+              if (questions.length < 10) questions.push(question);
+            });
+
+            setQuestions(questions);
           }
         })
         .catch((err) => console.log(err));
