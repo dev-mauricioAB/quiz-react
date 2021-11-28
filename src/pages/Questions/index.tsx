@@ -54,7 +54,7 @@ export const Questions: React.FC = () => {
       const requestParams: AxiosRequestConfig = {
         params: {
           apiKey: environments.apiKey,
-          limit: 10,
+          limit: 50,
           difficulty,
         },
       };

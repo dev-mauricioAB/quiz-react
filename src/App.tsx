@@ -1,4 +1,4 @@
-import { Questions } from "./components/Questions";
+import { Questions } from "./pages/Questions";
 import { GlobalStyle } from "./styles/global";
 
 export function App() {
